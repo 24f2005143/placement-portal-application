@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Drives{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Available Placement Drives</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+
+        <table class="table table-hover mb-0">
+
+            <thead class="table-light">
+                <tr>
+                    <th>Company</th>
+                    <th>Role</th>
+                    <th>Deadline</th>
+                    <th>Min CGPA</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for drive in drives %}
+                <tr>
+
+                    <td>{{ drive.company.name }}</td>
+
+                    <td>{{ drive.title }}</td>
+
+                    <td>
+                        {{ drive.deadline.strftime('%d %b %Y') if drive.deadline else '-' }}
+                    </td>
+
+                    <td>{{ drive.min_cgpa if drive.min_cgpa else '-' }}</td>
+
+                    <td>
+
+                        {# Check if already applied #}
+                        {% set applied = false %}
+                        {% for app in applications %}
+                            {% if app.drive_id == drive.id %}
+                                {% set applied = true %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if applied %}
+                            <span class="badge bg-info">Applied</span>
+                        {% else %}
+                            <form method="POST"
+                                  action="{{ url_for('student.apply_drive', drive_id=drive.id) }}">
+                                <button class="btn btn-sm btn-primary">
+                                    Apply
+                                </button>
+                            </form>
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-3">
+                        No drives available
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+{% endblock %}

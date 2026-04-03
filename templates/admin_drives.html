@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Drives{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Manage Drives</h2>
+
+<table class="table table-hover">
+
+<thead>
+<tr>
+<th>Company</th>
+<th>Role</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody>
+{% for d in drives %}
+<tr>
+
+<td>{{ d.company.name }}</td>
+<td>{{ d.title }}</td>
+
+<td>
+    <span class="badge
+        {% if d.status == 'approved' %} bg-success
+        {% elif d.status == 'pending' %} bg-warning text-dark
+        {% elif d.status == 'rejected' %} bg-danger
+        {% elif d.status == 'closed' %} bg-secondary
+        {% endif %}
+    ">
+        {{ d.status }}
+    </span>
+</td>
+
+<td>
+
+    <form method="POST"
+          action="{{ url_for('admin.update_drive', did=d.id) }}">
+        <button name="action" value="approve" class="btn btn-sm btn-success">Approve</button>
+        <button name="action" value="reject" class="btn btn-sm btn-danger">Reject</button>
+        <button name="action" value="close" class="btn btn-sm btn-secondary">Close</button>
+    </form>
+
+</td>
+
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Companies{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Manage Companies</h2>
+</div>
+
+<form method="GET" class="mb-3">
+    <input type="text" name="q" class="form-control"
+           placeholder="Search companies...">
+</form>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+
+        <table class="table table-hover mb-0">
+
+            <thead class="table-light">
+                <tr>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% if companies %}
+                    {% for c in companies %}
+                    <tr>
+
+                        <td>
+                            <i class="bi bi-building me-1"></i>
+                            {{ c.name }}
+                        </td>
+
+                        <td>
+                            <span class="badge
+                                {% if c.approval_status == 'approved' %} bg-success
+                                {% elif c.approval_status == 'pending' %} bg-warning text-dark
+                                {% else %} bg-danger
+                                {% endif %}
+                            ">
+                                {{ c.approval_status }}
+                            </span>
+                        </td>
+
+                        <td>
+
+                            <form method="POST"
+                                  action="{{ url_for('admin.update_company', cid=c.id) }}"
+                                  style="display:inline;">
+                                <button name="action" value="approve"
+                                        class="btn btn-sm btn-success">
+                                    Approve
+                                </button>
+                                <button name="action" value="reject"
+                                        class="btn btn-sm btn-danger">
+                                    Reject
+                                </button>
+                            </form>
+
+                            <!-- BLOCK -->
+                            <form method="POST"
+                                  action="{{ url_for('admin.toggle_company', cid=c.id) }}"
+                                  style="display:inline;">
+                                <button class="btn btn-sm
+                                    {% if c.is_blacklisted %}
+                                        btn-success
+                                    {% else %}
+                                        btn-warning
+                                    {% endif %}
+                                ">
+                                    {{ 'Unblock' if c.is_blacklisted else 'Block' }}
+                                </button>
+                            </form>
+
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3">
+                            No companies found
+                        </td>
+                    </tr>
+                {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+{% endblock %}

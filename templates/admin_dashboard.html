@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Admin Dashboard</h2>
+
+<div class="row g-3">
+
+    <div class="col-md-3">
+        <div class="card bg-primary text-white p-3">
+            <h5>Students</h5>
+            <h2>{{ total_students }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-success text-white p-3">
+            <h5>Companies</h5>
+            <h2>{{ total_companies }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-info text-white p-3">
+            <h5>Drives</h5>
+            <h2>{{ total_drives }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-dark text-white p-3">
+            <h5>Applications</h5>
+            <h2>{{ total_applications }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('admin.manage_companies') }}" class="btn btn-primary me-2">
+        Manage Companies
+    </a>
+
+    <a href="{{ url_for('admin.manage_drives') }}" class="btn btn-success me-2">
+        Manage Drives
+    </a>
+
+    <a href="{{ url_for('admin.manage_students') }}" class="btn btn-warning me-2">
+        Manage Students
+    </a>
+
+    <a href="{{ url_for('admin.view_applications') }}" class="btn btn-secondary">
+        View Applications
+    </a>
+</div>
+
+{% endblock %}

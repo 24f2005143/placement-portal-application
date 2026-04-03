@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Students{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Manage Students</h2>
+</div>
+
+<!-- 🔍 SEARCH -->
+<form method="GET" class="mb-3">
+    <input type="text" name="q" class="form-control"
+           placeholder="Search students by name...">
+</form>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+
+        <table class="table table-hover mb-0">
+
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>CGPA</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% if students %}
+                    {% for s in students %}
+                    <tr>
+
+                        <td>
+                            <i class="bi bi-person me-1"></i>
+                            {{ s.full_name }}
+                        </td>
+
+                        <td>
+                            {{ s.cgpa if s.cgpa else '-' }}
+                        </td>
+
+                        <td>
+                            <form method="POST"
+                                  action="{{ url_for('admin.toggle_student', sid=s.id) }}">
+
+                                <button class="btn btn-sm
+                                    {% if s.is_blacklisted %}
+                                        btn-success
+                                    {% else %}
+                                        btn-warning
+                                    {% endif %}
+                                ">
+                                    {{ 'Unblock' if s.is_blacklisted else 'Block' }}
+                                </button>
+
+                            </form>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3">
+                            No students found
+                        </td>
+                    </tr>
+                {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+{% endblock %}

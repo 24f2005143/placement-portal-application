@@ -1,217 +1,126 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from models import db, User, Student, Company, Drive, Application
+from models import db, Student, Company, PlacementDrive, Application
 
 admin_bp = Blueprint('admin', __name__)
 
 
-
-def admin_required():
-    return current_user.is_authenticated and current_user.role == 'admin'
-
-
-
-@admin_bp.route('/')
+@admin_bp.route('/dashboard')
 @login_required
 def dashboard():
-    if not admin_required():
-        return "Access Denied"
-
-    total_students = Student.query.count()
-    total_companies = Company.query.count()
-    total_drives = Drive.query.count()
-    total_applications = Application.query.count()
+    if current_user.role != 'admin':
+        return redirect(url_for('auth.login'))
 
     return render_template(
-        'admin/dashboard.html',
-        students=total_students,
-        companies=total_companies,
-        drives=total_drives,
-        applications=total_applications
+        'admin_dashboard.html',
+        total_students=Student.query.count(),
+        total_companies=Company.query.count(),
+        total_drives=PlacementDrive.query.count(),
+        total_applications=Application.query.count()
     )
-
-
-
-@admin_bp.route('/companies')
-@login_required
-def view_companies():
-    if not admin_required():
-        return "Access Denied"
-
-    companies = Company.query.all()
-    return render_template('admin/companies.html', companies=companies)
-
-
-
-@admin_bp.route('/company/approve/<int:id>')
-@login_required
-def approve_company(id):
-    if not admin_required():
-        return "Access Denied"
-
-    company = Company.query.get(id)
-    if not company:
-        return "Company not found"
-
-    company.approval_status = "Approved"
-    db.session.commit()
-
-    return "Company Approved"
-
-
-
-@admin_bp.route('/company/reject/<int:id>')
-@login_required
-def reject_company(id):
-    if not admin_required():
-        return "Access Denied"
-
-    company = Company.query.get(id)
-    if not company:
-        return "Company not found"
-
-    company.approval_status = "Rejected"
-    db.session.commit()
-
-    return "Company Rejected"
-
-
-@admin_bp.route('/companies/pending')
-@login_required
-def pending_companies():
-    if not admin_required():
-        return "Access Denied"
-
-    companies = Company.query.filter_by(approval_status="Pending").all()
-    return render_template('admin/pending_companies.html', companies=companies)
 
 
 @admin_bp.route('/students')
 @login_required
-def view_students():
-    if not admin_required():
-        return "Access Denied"
-
-    students = Student.query.all()
-    return render_template('admin/students.html', students=students)
-
-
-
-@admin_bp.route('/students/search')
-@login_required
-def search_students():
-    if not admin_required():
-        return "Access Denied"
+def manage_students():
+    if current_user.role != 'admin':
+        return redirect(url_for('auth.login'))
 
     query = request.args.get('q')
 
-    students = Student.query.filter(
-        Student.name.contains(query)
-    ).all()
+    if query:
+        students = Student.query.filter(
+            Student.full_name.ilike(f"%{query}%")
+        ).all()
+    else:
+        students = Student.query.all()
 
-    return render_template('admin/students.html', students=students)
+    return render_template('admin_students.html', students=students)
 
 
-
-@admin_bp.route('/companies/search')
+@admin_bp.route('/students/<int:sid>/toggle', methods=['POST'])
 @login_required
-def search_companies():
-    if not admin_required():
-        return "Access Denied"
+def toggle_student(sid):
+    student = Student.query.get_or_404(sid)
+    student.is_blacklisted = not student.is_blacklisted
+    db.session.commit()
+    return redirect(url_for('admin.manage_students'))
+
+
+@admin_bp.route('/companies')
+@login_required
+def manage_companies():
+    if current_user.role != 'admin':
+        return redirect(url_for('auth.login'))
 
     query = request.args.get('q')
 
-    companies = Company.query.filter(
-        Company.company_name.contains(query)
-    ).all()
+    if query:
+        companies = Company.query.filter(
+            Company.name.ilike(f"%{query}%")
+        ).all()
+    else:
+        companies = Company.query.all()
 
-    return render_template('admin/companies.html', companies=companies)
+    return render_template('admin_companies.html', companies=companies)
 
 
-
-@admin_bp.route('/student/blacklist/<int:id>')
+@admin_bp.route('/companies/<int:cid>/update', methods=['POST'])
 @login_required
-def blacklist_student(id):
-    if not admin_required():
-        return "Access Denied"
+def update_company(cid):
+    company = Company.query.get_or_404(cid)
+    action = request.form.get('action')
 
-    student = Student.query.get(id)
-    if not student:
-        return "Student not found"
+    if action == 'approve':
+        company.approval_status = 'approved'
+    elif action == 'reject':
+        company.approval_status = 'rejected'
 
-    student.is_blacklisted = True
     db.session.commit()
-
-    return "Student Blacklisted"
-
+    return redirect(url_for('admin.manage_companies'))
 
 
-@admin_bp.route('/company/blacklist/<int:id>')
+@admin_bp.route('/companies/<int:cid>/toggle', methods=['POST'])
 @login_required
-def blacklist_company(id):
-    if not admin_required():
-        return "Access Denied"
-
-    company = Company.query.get(id)
-    if not company:
-        return "Company not found"
-
-    company.approval_status = "Blacklisted"
+def toggle_company(cid):
+    company = Company.query.get_or_404(cid)
+    company.is_blacklisted = not company.is_blacklisted
     db.session.commit()
-
-    return "Company Blacklisted"
+    return redirect(url_for('admin.manage_companies'))
 
 
 @admin_bp.route('/drives')
 @login_required
-def view_drives():
-    if not admin_required():
-        return "Access Denied"
+def manage_drives():
+    if current_user.role != 'admin':
+        return redirect(url_for('auth.login'))
 
-    drives = Drive.query.all()
-    return render_template('admin/drives.html', drives=drives)
+    drives = PlacementDrive.query.all()
+    return render_template('admin_drives.html', drives=drives)
 
 
-
-@admin_bp.route('/drive/approve/<int:id>')
+@admin_bp.route('/drives/<int:did>/update', methods=['POST'])
 @login_required
-def approve_drive(id):
-    if not admin_required():
-        return "Access Denied"
+def update_drive(did):
+    drive = PlacementDrive.query.get_or_404(did)
+    action = request.form.get('action')
 
-    drive = Drive.query.get(id)
-    if not drive:
-        return "Drive not found"
+    if action == 'approve':
+        drive.status = 'approved'
+    elif action == 'reject':
+        drive.status = 'rejected'
+    elif action == 'close':
+        drive.status = 'closed'
 
-    drive.status = "Approved"
     db.session.commit()
-
-    return "Drive Approved"
-
-
-
-@admin_bp.route('/drive/reject/<int:id>')
-@login_required
-def reject_drive(id):
-    if not admin_required():
-        return "Access Denied"
-
-    drive = Drive.query.get(id)
-    if not drive:
-        return "Drive not found"
-
-    drive.status = "Rejected"
-    db.session.commit()
-
-    return "Drive Rejected"
-
+    return redirect(url_for('admin.manage_drives'))
 
 
 @admin_bp.route('/applications')
 @login_required
 def view_applications():
-    if not admin_required():
-        return "Access Denied"
+    if current_user.role != 'admin':
+        return redirect(url_for('auth.login'))
 
     applications = Application.query.all()
-    return render_template('admin/applications.html', applications=applications)
+    return render_template('admin_applications.html', applications=applications)

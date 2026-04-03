@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Student Dashboard</h2>
+
+<div class="row g-3">
+
+    <div class="col-md-4">
+        <div class="card bg-primary text-white p-3">
+            <h5>Total Applications</h5>
+            <h2>{{ applications|length }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-success text-white p-3">
+            <h5>Selected</h5>
+            <h2>
+                {{ applications | selectattr('status','equalto','selected') | list | length }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-info text-white p-3">
+            <h5>Shortlisted</h5>
+            <h2>
+                {{ applications | selectattr('status','equalto','shortlisted') | list | length }}
+            </h2>
+        </div>
+    </div>
+
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('student.drives') }}" class="btn btn-primary me-2">
+        View Drives
+    </a>
+
+    <a href="{{ url_for('student.history') }}" class="btn btn-outline-secondary">
+        My Applications
+    </a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Applications{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">All Applications</h2>
+
+<table class="table table-hover">
+
+<thead>
+<tr>
+<th>Student</th>
+<th>Company</th>
+<th>Role</th>
+<th>Status</th>
+</tr>
+</thead>
+
+<tbody>
+{% for app in applications %}
+<tr>
+
+<td>{{ app.student.full_name }}</td>
+<td>{{ app.drive.company.name }}</td>
+<td>{{ app.drive.title }}</td>
+
+<td>
+    <span class="badge
+        {% if app.status == 'applied' %} bg-secondary
+        {% elif app.status == 'shortlisted' %} bg-info
+        {% elif app.status == 'selected' %} bg-success
+        {% elif app.status == 'rejected' %} bg-danger
+        {% endif %}
+    ">
+        {{ app.status }}
+    </span>
+</td>
+
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+
+{% endblock %}
